@@ -1,0 +1,23 @@
+FROM public.ecr.aws/m9v0w4d5/base:v13
+
+ARG ENV
+
+EXPOSE 80
+
+USER erp
+
+WORKDIR /home/erp
+
+ADD $ENV /home/erp/
+
+COPY ./Scripts/frappe.sh /home/erp/frappe.sh
+
+COPY ./Conf/nginx.conf /home/erp/nginx.conf
+
+RUN ["/bin/bash","-c","./frappe.sh"]
+
+WORKDIR /home/erp/frappe-bench
+
+COPY ./Scripts/startup.sh /startup.sh
+
+CMD /startup.sh

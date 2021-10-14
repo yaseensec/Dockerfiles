@@ -1,0 +1,6 @@
+FROM mariadb:10.3
+
+EXPOSE 3306
+
+RUN printf '[mysqld] \ncharacter-set-client-handshake = FALSE \ncharacter-set-server = utf8mb4 \ncollation-server = utf8mb4_unicode_ci \n[mysql] \ndefault-character-set = utf8mb4' >> /etc/mysql/my.cnf
+

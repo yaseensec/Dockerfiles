@@ -1,0 +1,35 @@
+FROM ubuntu:latest AS base
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+COPY ./Scripts/base.sh /base.sh
+
+COPY ./Scripts/wait-for-it.sh /bin/wait-for-it.sh
+
+RUN /base.sh
+
+FROM base AS erp
+
+ARG ENV
+
+EXPOSE 80
+
+EXPOSE 443
+
+USER erp
+
+WORKDIR /home/erp
+
+COPY $ENV /home/erp/
+
+COPY ./Scripts/frappe.sh /home/erp/frappe.sh
+
+COPY ./Conf/nginx.conf /home/erp/nginx.conf
+
+RUN ["/bin/bash","-c","./frappe.sh"]
+
+WORKDIR /home/erp/frappe-bench
+
+COPY ./Scripts/startup.sh /startup.sh
+
+CMD /startup.sh

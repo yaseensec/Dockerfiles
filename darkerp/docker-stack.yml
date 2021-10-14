@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+    mariadb:
+      image: public.ecr.aws/m9v0w4d5/mariadb:10.3
+      container_name: MariaDB
+      networks:
+        erpnet:
+          ipv4_address: 172.16.238.10
+          ipv6_address: 2001:3984:3989::10
+      environment:
+        - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      ports:
+        - "3306:3306"
+      volumes:
+        - mariadb-vol:/var/lib/mysql
+      deploy:
+        mode: replicated
+        replicas: 2
+
+    erp:
+      build:
+        context: .
+        dockerfile: dockerfile-multistage
+        target: erp
+        args:
+          ENV: .env
+      image: public.ecr.aws/m9v0w4d5/erp:v13
+      container_name: ERP
+      networks:
+        erpnet:
+          ipv4_address: 172.16.238.11
+          ipv6_address: 2001:3984:3989::11
+      environment:
+        - FRAPPE_GIT_URL=${FRAPPE_GIT_URL}
+        - FRAPPE_BRANCH=${FRAPPE_BRANCH}
+        - MARIADB_HOST=${MARIADB_HOST}
+        - MARIADB_USER=${MARIADB_USER}
+        - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+        - MARIADB_DB_NAME=${MARIADB_DB_NAME}
+        - MARIADB_DB_PORT=${MARIADB_DB_PORT}
+        - ERPNEXT_GIT_URL=${ERPNEXT_GIT_URL}
+        - ERPNEXT_BRANCH=${ERPNEXT_BRANCH}
+        - SITES=${SITES}
+        - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+        - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      ports:
+        - "80:80"
+        - "443:443"
+      volumes:
+        - sites-vol:/home/erp/frappe-bench/sites:rw
+        - logs-vol:/home/erp/frappe-bench/logs:rw
+      command: ["/bin/wait-for-it.sh", "-t", "20", "mariadb:3306", "--", "/startup.sh"]
+networks:
+  erpnet:
+    name: darkerpnet
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.238.0/24"
+        - subnet: "2001:3984:3989::/64"
+volumes:
+  mariadb-vol:
+  sites-vol:
+  logs-vol:
