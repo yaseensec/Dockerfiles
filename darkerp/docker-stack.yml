@@ -15,8 +15,23 @@ services:
       volumes:
         - mariadb-vol:/var/lib/mysql
       deploy:
-        mode: replicated
-        replicas: 2
+          mode: replicated
+          replicas: 2
+          update_config:
+            parallelism: 2
+            order: start-first
+            failure_action: rollback
+            delay: 10s
+          rollback_config:
+            parallelism: 0
+            order: stop-first
+          restart_policy:
+            condition: any
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+      healthcheck:
+        test: ["CMD", "service", "mysql", "status"]
 
     erp:
       build:
@@ -50,6 +65,31 @@ services:
       volumes:
         - sites-vol:/home/erp/frappe-bench/sites:rw
         - logs-vol:/home/erp/frappe-bench/logs:rw
+      deploy:
+          resources:
+            limits:
+              cpus: '0.50'
+              memory: 1536M
+            reservations:
+              cpus: '0.25'
+              memory: 1024M
+          mode: replicated
+          replicas: 2
+          update_config:
+            parallelism: 2
+            order: start-first
+            failure_action: rollback
+            delay: 10s
+          rollback_config:
+            parallelism: 0
+            order: stop-first
+          restart_policy:
+            condition: any
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+      healthcheck:
+        test: ["CMD", "service", "nginx", "status"]
       command: ["/bin/wait-for-it.sh", "-t", "20", "mariadb:3306", "--", "/startup.sh"]
 networks:
   erpnet:

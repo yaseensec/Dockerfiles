@@ -22,8 +22,24 @@ services:
           #- ./Conf/frappe-mariadb.cnf:/etc/mysql/conf.d/frappe.cnf
         - mariadb-vol:/var/lib/mysql
       deploy:
-        mode: replicated
-        replicas: 2
+          mode: replicated
+          replicas: 2
+          update_config:
+            parallelism: 2
+            order: start-first
+            failure_action: rollback
+            delay: 10s
+          rollback_config:
+            parallelism: 0
+            order: stop-first
+          restart_policy:
+            condition: any
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+      healthcheck:
+        test: ["CMD", "service", "mysql", "status"]
+
 
     erp:
       build:
@@ -61,6 +77,25 @@ services:
       volumes:
         - sites-vol:/home/erp/frappe-bench/sites:rw
         - logs-vol:/home/erp/frappe-bench/logs:rw
+      deploy:
+          mode: replicated
+          replicas: 2
+          update_config:
+            parallelism: 2
+            order: start-first
+            failure_action: rollback
+            delay: 10s
+          rollback_config:
+            parallelism: 0
+            order: stop-first
+          restart_policy:
+            condition: any
+            delay: 5s
+            max_attempts: 3
+            window: 120s
+      healthcheck:
+        test: ["CMD", "service", "nginx", "status"]
+
 networks:
   erpnet:
     name: darkerpnet
