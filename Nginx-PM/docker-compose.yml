@@ -1,0 +1,52 @@
+version: "3.9"
+secrets:
+  DB_ROOT_PWD:
+   file: /home/docker/nginxpm/db_root_pwd.txt
+  MYSQL_PWD:
+    file: /home/docker/nginxpm/mysql_pwd.txt
+
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '81:81'
+    environment:
+      DB_MYSQL_HOST: "db"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: "docker"
+      DB_MYSQL_PASSWORD__FILE: /run/secrets/MYSQL_PWD
+      DB_MYSQL_NAME: "npm"
+    volumes:
+      - /home/docker/nginxpm/nginxpm:/data
+      - /home/docker/letsencrypt:/etc/letsencrypt
+    healthcheck:
+      test: ["CMD", "/bin/check-health"]
+      interval: 10s
+      timeout: 3s
+    secrets:
+      - MYSQL_PWD
+    depends_on:
+      - db
+
+  db:
+    image: 'mariadb:latest'
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/DB_ROOT_PWD
+      MYSQL_DATABASE: 'npm'
+      MYSQL_USER: 'docker'
+      MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_PWD
+    volumes:
+      - /home/docker/nginxpm/nginxpm-db:/var/lib/mysql
+    user: 1001:1001
+    secrets:
+      - DB_ROOT_PWD
+      - MYSQL_PWD
+
+networks:
+  default:
+    external:
+      name: nginx-pm
