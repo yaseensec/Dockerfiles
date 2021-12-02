@@ -1,0 +1,29 @@
+version: "3.9"
+secrets:
+  PORTAINER_ADMIN_PASSWORD:
+    file: /home/docker/secrets/portainer_admin_password.txt
+
+services:
+  server:
+    image: 'cr.portainer.io/portainer/portainer-ce:2.9.3'
+    command: -H tcp://192.168.43.64:2376 --tlsverify --tlscacert=/certs/ca.pem --tlscert=/certs/client-cert.pem --tlskey=/certs/client-key.pem --sslcert /certs/portainer-cert.pem --sslkey /certs/portainer-key.pem --admin-password-file=/run/secrets/PORTAINER_ADMIN_PASSWORD
+    restart: unless-stopped
+      #ports:
+      #- '9443:9443'
+      #- '8000:8000'
+    networks:
+      nginx-proxy-manager:
+        ipv4_address: 172.16.220.20
+        ipv6_address: 2001:3984:3989::20
+    volumes:
+      - /home/docker/portainer:/data
+      - /home/docker/certs:/certs
+    secrets:
+      - PORTAINER_ADMIN_PASSWORD
+    user: 1001:1001
+
+networks:
+  nginx-proxy-manager:
+    external: true
+
+

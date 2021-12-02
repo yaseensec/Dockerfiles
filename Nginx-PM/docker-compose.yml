@@ -1,9 +1,9 @@
 version: "3.9"
 secrets:
-  DB_ROOT_PWD:
-   file: /home/docker/nginxpm/db_root_pwd.txt
-  MYSQL_PWD:
-    file: /home/docker/nginxpm/mysql_pwd.txt
+  NGINX_DB_ROOT_PWD:
+   file: /home/docker/secrets/nginx_db_root_pwd.txt
+  NGINX_MYSQL_PWD:
+    file: /home/docker/secrets/nginx_mysql_pwd.txt
 
 services:
   app:
@@ -13,11 +13,15 @@ services:
       - '80:80'
       - '443:443'
       - '81:81'
+    networks:
+      nginx-pm:
+        ipv4_address: 172.16.220.11
+        ipv6_address: 2001:3984:3989::11
     environment:
       DB_MYSQL_HOST: "db"
       DB_MYSQL_PORT: 3306
       DB_MYSQL_USER: "docker"
-      DB_MYSQL_PASSWORD__FILE: /run/secrets/MYSQL_PWD
+      DB_MYSQL_PASSWORD__FILE: /run/secrets/NGINX_MYSQL_PWD
       DB_MYSQL_NAME: "npm"
     volumes:
       - /home/docker/nginxpm/nginxpm:/data
@@ -27,7 +31,7 @@ services:
       interval: 10s
       timeout: 3s
     secrets:
-      - MYSQL_PWD
+      - NGINX_MYSQL_PWD
     depends_on:
       - db
 
@@ -35,18 +39,27 @@ services:
     image: 'mariadb:latest'
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/DB_ROOT_PWD
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/NGINX_DB_ROOT_PWD
       MYSQL_DATABASE: 'npm'
       MYSQL_USER: 'docker'
-      MYSQL_PASSWORD_FILE: /run/secrets/MYSQL_PWD
+      MYSQL_PASSWORD_FILE: /run/secrets/NGINX_MYSQL_PWD
+    networks:
+      nginx-pm:
+        ipv4_address: 172.16.220.12
+        ipv6_address: 2001:3984:3989::12
     volumes:
       - /home/docker/nginxpm/nginxpm-db:/var/lib/mysql
     user: 1001:1001
     secrets:
-      - DB_ROOT_PWD
-      - MYSQL_PWD
+      - NGINX_DB_ROOT_PWD
+      - NGINX_MYSQL_PWD
 
 networks:
-  default:
-    external:
-      name: nginx-pm
+  nginx-pm:
+    name: nginx-proxy-manager
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.220.0/24"
+        - subnet: "2001:3984:3989::/64"
+
