@@ -5,8 +5,8 @@ secrets:
 
 services:
   server:
-    image: 'cr.portainer.io/portainer/portainer-ce:2.9.3'
-    command: -H tcp://192.168.43.64:2376 --tlsverify --tlscacert=/certs/ca.pem --tlscert=/certs/client-cert.pem --tlskey=/certs/client-key.pem --sslcert /certs/portainer-cert.pem --sslkey /certs/portainer-key.pem --admin-password-file=/run/secrets/PORTAINER_ADMIN_PASSWORD
+    image: 'portainer/portainer-ce:latest'
+    command: -H tcp://192.168.0.40:2376 --tlsverify --tlscacert=/certs/ca.pem --tlscert=/certs/cert.pem --tlskey=/certs/key.pem --admin-password-file=/run/secrets/PORTAINER_ADMIN_PASSWORD
     restart: unless-stopped
       #ports:
       #- '9443:9443'

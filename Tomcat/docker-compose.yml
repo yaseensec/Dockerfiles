@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  server:
+    image: 'tomcat:latest'
+    restart: unless-stopped
+      #ports:
+      #- '9443:9443'
+      #- '8000:8000'
+    networks:
+      nginx-proxy-manager:
+        ipv4_address: 172.16.220.50
+        ipv6_address: 2001:3984:3989::50
+    volumes:
+      - /home/docker/tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml
+      - /home/docker/tomcat/webapps:/usr/local/tomcat/webapps
+    user: 1001:1001
+
+networks:
+  nginx-proxy-manager:
+    external: true
+
+

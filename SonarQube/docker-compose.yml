@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  server:
+    image: sonarqube:latest
+    depends_on:
+      - db
+    environment:
+      sonar.jdbc.url: jdbc:postgresql://db:5432/sonar
+      sonar.jdbc.username: sonar
+      sonar.jdbc.password: sonar
+    volumes:
+      - /home/docker/sonarqube/sonarserver/data:/opt/sonarqube/data
+      - /home/docker/sonarqube/sonarserver/extensions:/opt/sonarqube/extensions
+      - /home/docker/sonarqube/sonarserver/logs:/opt/sonarqube/logs
+    ports:
+      - "9000:9000"
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+    volumes:
+      - /home/docker/sonarqube/postgres/postgresql:/var/lib/postgresql
+      - /home/docker/sonarqube/postgres/postgresql/data:/var/lib/postgresql/data
+
