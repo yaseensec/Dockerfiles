@@ -20,4 +20,4 @@ security:
         strategy: triggeringUsersAuthorizationStrategy
 unclassified:
   location:
-    url: http://darkrose.yaseenins.com:8080/
+    url: http://jenkins.yaseenins.com:8080/
